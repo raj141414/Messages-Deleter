@@ -11,10 +11,12 @@ async def delete_all(client, message):
     bot_member = await client.get_chat_member(message.chat.id, client.me.id)
 
     print(f"Bot Status: {bot_member.status}")
-    print(f"Can Delete Messages: {bot_member.can_delete_messages}")
 
+    # Check if the bot is an administrator and has the necessary permissions
     if bot_member.status in ["administrator", "creator"]:
-        if not bot_member.can_delete_messages:
+        # Get the permissions
+        permissions = bot_member.privileges
+        if permissions and not permissions.can_delete_messages:
             await message.reply("I don't have permission to delete messages in this chat.")
             return
 
