@@ -1,18 +1,18 @@
 from pyrogram import Client, filters
 
-# Replace with your actual API ID, API Hash, and Bot Token
-API_ID = '16501053'  # Example: your actual API ID
-API_HASH = 'd8c9b01c863dabacc484c2c06cdd0f6e'  # Example: your actual API Hash
-BOT_TOKEN = '7721012312:AAF8Q0dYhN5vLYq5nvBnWvwkBvSEVgaKGns'  # Example: your actual Bot Token
+API_ID = '16501053'  # Replace with your actual API ID
+API_HASH = 'd8c9b01c863dabacc484c2c06cdd0f6e'  # Replace with your actual API Hash
+BOT_TOKEN = '7721012312:AAF8Q0dYhN5vLYq5nvBnWvwkBvSEVgaKGns'  # Replace with your actual Bot Token
 
 app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
 @app.on_message(filters.command("delete_all") & filters.group)
 async def delete_all(client, message):
-    # Get bot's member status in the group
     bot_member = await client.get_chat_member(message.chat.id, client.me.id)
 
-    # Check if the bot can delete messages
+    print(f"Bot Status: {bot_member.status}")
+    print(f"Can Delete Messages: {bot_member.can_delete_messages}")
+
     if bot_member.status in ["administrator", "creator"]:
         if not bot_member.can_delete_messages:
             await message.reply("I don't have permission to delete messages in this chat.")
