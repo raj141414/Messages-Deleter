@@ -1,8 +1,9 @@
 from pyrogram import Client, filters
+import asyncio
 
-API_ID = '16501053'  # Replace with your actual API ID
-API_HASH = 'd8c9b01c863dabacc484c2c06cdd0f6e'  # Replace with your actual API Hash
-BOT_TOKEN = '7721012312:AAF8Q0dYhN5vLYq5nvBnWvwkBvSEVgaKGns'  # Replace with your actual Bot Token
+API_ID = '16501053'  # Your API ID
+API_HASH = 'd8c9b01c863dabacc484c2c06cdd0f6e'  # Your API Hash
+BOT_TOKEN = '7721012312:AAF8Q0dYhN5vLYq5nvBnWvwkBvSEVgaKGns'  # Your Bot Token
 
 app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
@@ -10,20 +11,34 @@ app = Client("my_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 async def delete_all(client, message):
     bot_member = await client.get_chat_member(message.chat.id, client.me.id)
 
-    print(f"Bot Status: {bot_member.status}")
-
-    # Check if the bot is an administrator
     if bot_member.status in ["administrator", "creator"]:
-        # Verify that the bot has permission to delete messages
-        if not bot_member.privileges or not bot_member.privileges.can_delete_messages:
-            await message.reply("I don't have permission to delete messages in this chat.")
+        if hasattr(bot_member, "privileges"):
+            permissions = bot_member.privileges
+            if not permissions.can_delete_messages:
+                await message.reply("I don't have permission to delete messages in this chat.")
+                return
+        else:
+            await message.reply("The bot has administrator rights but cannot check privileges.")
             return
 
-        # Deleting messages
-        async for msg in client.get_chat_history(message.chat.id):
-            await client.delete_messages(message.chat.id, msg.message_id)
+        # Get the chat history
+        messages = await client.get_chat_history(message.chat.id)
+        total_messages = len(messages)
 
-        await message.reply("All messages deleted!")
+        if total_messages == 0:
+            await message.reply("No messages to delete.")
+            return
+
+        progress_message = await message.reply(f"Deleting {total_messages} messages...")
+        
+        # Delete messages with progress indication
+        for index, msg in enumerate(messages):
+            await client.delete_messages(message.chat.id, msg.message_id)
+            await progress_message.edit(f"Deleted {index + 1}/{total_messages} messages.")
+            await asyncio.sleep(2)  # Wait for 2 seconds between deletions
+
+        await progress_message.edit("All messages deleted!")
+
     else:
         await message.reply("I need to be an administrator to delete messages.")
 
